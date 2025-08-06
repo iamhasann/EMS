@@ -1,0 +1,53 @@
+:root {
+  --myapp-time-picker-zindex: 9999;
+  --myapp-time-picker-font-family: Roboto, sans-serif;
+  --myapp-time-picker-font-size: 14px;
+  --myapp-time-picker-font-weight: 400;
+  --myapp-time-picker-line-height: 1.5;
+  --myapp-time-picker-color: #333;
+  --myapp-time-picker-bg: #fff;
+  --myapp-time-picker-box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  --myapp-time-picker-border-width: 1px;
+  --myapp-time-picker-border-color: #ccc;
+  --myapp-time-picker-border-radius: 0.375rem;
+  --myapp-time-picker-disabled-color: #aaa;
+  --myapp-time-picker-disabled-bg: #f5f5f5;
+  --myapp-time-picker-disabled-border-color: #ddd;
+  --myapp-time-picker-focus-color: #000;
+  --myapp-time-picker-focus-bg: #fff;
+  --myapp-time-picker-focus-border-color: #66afe9;
+  --myapp-time-picker-focus-box-shadow: 0 0 0 0.2rem rgba(102, 175, 233, 0.6);
+  --myapp-time-picker-placeholder-color: #888;
+  --myapp-time-picker-padding-y: 0.5rem;
+  --myapp-time-picker-padding-x: 0.75rem;
+  --myapp-time-picker-gap: 0.5rem;
+  --myapp-time-picker-indicator-width: 1.5rem;
+  --myapp-time-picker-indicator-icon: escape-svg('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8v5h4" stroke="#000" fill="none"/></svg>');
+  --myapp-time-picker-indicator-icon-color: #000;
+  --myapp-time-picker-indicator-icon-size: 1rem;
+  --myapp-time-picker-cleaner-width: 1.5rem;
+  --myapp-time-picker-cleaner-icon: escape-svg('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6 6l12 12M6 18L18 6" stroke="#000" fill="none"/></svg>');
+  --myapp-time-picker-cleaner-icon-color: #666;
+  --myapp-time-picker-cleaner-icon-hover-color: #000;
+  --myapp-time-picker-cleaner-icon-size: 1rem;
+  --myapp-time-picker-body-padding: 1rem;
+  --myapp-time-picker-footer-border-width: 1px;
+  --myapp-time-picker-footer-border-color: #eee;
+  --myapp-time-picker-footer-padding: 0.75rem;
+  --myapp-time-picker-dropdown-bg: #fff;
+  --myapp-time-picker-dropdown-border-width: 1px;
+  --myapp-time-picker-dropdown-border-color: #ccc;
+  --myapp-time-picker-dropdown-border-radius: 0.5rem;
+  --myapp-time-picker-dropdown-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  --myapp-time-picker-roll-col-border-width: 1px;
+  --myapp-time-picker-roll-col-border-color: #e5e5e5;
+  --myapp-time-picker-roll-cell-selected-color: #fff;
+  --myapp-time-picker-roll-cell-selected-bg: #007bff;
+  --myapp-time-picker-inline-select-font-size: 1rem;
+  --myapp-time-picker-inline-select-color: #000;
+  --myapp-time-picker-inline-select-padding-y: 0.25rem;
+  --myapp-time-picker-inline-select-padding-x: 0.5rem;
+  --myapp-time-picker-inline-select-disabled-color: #bbb;
+}
+
+/*# sourceMappingURL=time-picker.css.map */
