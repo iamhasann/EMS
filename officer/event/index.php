@@ -4,8 +4,11 @@ session_start();
 $currentDir = basename(dirname($_SERVER['PHP_SELF']));
 
 require('../fpdf/fpdf.php');
+require_once('../../config/database.php');
 
-if (isset($_GET['cetak'])) {
+if (isset($_GET['cetak']) && isset($_GET['id'])) {
+    $id = intval($_GET['id']); // ป้องกัน SQL Injection ด้วย intval()
+
     class MedicalForm extends FPDF
     {
         // หน้าหัวฟอร์ม
@@ -18,6 +21,13 @@ if (isset($_GET['cetak'])) {
             $this->Cell(0, 8, iconv('UTF-8', 'cp874', 'สำนักงานระบบบริการการแพทย์ฉุกเฉิน'), 0, 1, 'C');
             $this->Cell(0, 8, iconv('UTF-8', 'cp874', 'แบบบันทึกการปฏิบัติงานหน่วยปฏิบัติการการแพทย์ฉุกเฉินระดับพื้นฐาน'), 0, 1, 'C');
             $this->Ln(5);
+        }
+
+        function LoadData($pdo, $id)
+        {
+            $stmt = $pdo->prepare("SELECT * FROM incident_areas WHERE id = ?");
+            $stmt->execute([$id]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
         }
 
         // ฟังก์ชันสร้าง checkbox
@@ -38,7 +48,7 @@ if (isset($_GET['cetak'])) {
         }
 
         // Section 1: หน่วยบริการ
-        function Section1()
+        function Section1($data)
         {
             $this->SetFont('THSarabun', 'B', 12);
             $this->Cell(50, 5, iconv('UTF-8', 'cp874', '1. หน่วยบริการ'), 0, 0);
@@ -55,58 +65,76 @@ if (isset($_GET['cetak'])) {
             $y_start += 0;
             $this->SetXY(15, $y_start);
             $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'ชื่อหน่วยบริการ:'), 0, 0);
-            $this->UnderLine(35, $y_start, 65);
+            $this->Cell(35, 5, iconv('UTF-8', 'cp874', $data['unit_name']), 0, 0);
 
             $this->SetXY(100, $y_start);
-            $this->Cell(25, 5, iconv('UTF-8', 'cp874', 'วัน/เดือน/ปี:'), 0, 0);
-            $this->UnderLine(115, $y_start, 25);
+            $this->Cell(15, 5, iconv('UTF-8', 'cp874', 'วัน/เดือน/ปี:'), 0, 0);
+            $this->Cell(15, 5, iconv('UTF-8', 'cp874', $data['record_date']), 0, 0);
 
             $this->SetXY(140, $y_start);
-            $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'ปฏิบัติการที่:'), 0, 0);
-            $this->UnderLine(155, $y_start, 40);
+            $this->Cell(15, 5, iconv('UTF-8', 'cp874', 'ปฏิบัติการที่:'), 0, 0);
+            $this->Cell(15, 5, iconv('UTF-8', 'cp874', $data['operation_number']), 0, 0);
+
+            // แปลงข้อมูลชื่อเจ้าหน้าที่เป็น array
+            $staffRaw = $data['staff_members']; // เช่น "สมชาย,ปวีณา,นิกร,สุภา"
+            $staff = array_map('trim', explode(',', $staffRaw)); // แยกชื่อและลบช่องว่าง
 
             // แถวที่ 3-4 (เจ้าหน้าที่)
             $y_start += 5;
             $this->SetXY(15, $y_start);
             $this->Cell(30, 5, iconv('UTF-8', 'cp874', 'เจ้าหน้าที่ผู้ปฏิบัติการ'), 0, 0);
-            $this->Cell(10, 5, '1.', 0, 0);
-            $this->UnderLine(50, $y_start, 40);
-            $this->SetXY(90, $y_start);
-            $this->Cell(15, 5, iconv('UTF-8', 'cp874', 'รหัส:'), 0, 0);
-            $this->UnderLine(97, $y_start, 20);
 
+            // คนที่ 1
+            $this->Cell(5, 5, '1.', 0, 0);
+            $this->Cell(40, 5, iconv('UTF-8', 'cp874', $staff[0] ?? ''), 0, 0);
+
+            // คนที่ 2
             $this->SetXY(120, $y_start);
             $this->Cell(5, 5, '2.', 0, 0);
-            $this->UnderLine(125, $y_start, 40);
-            $this->SetXY(165, $y_start);
-            $this->Cell(15, 5, iconv('UTF-8', 'cp874', 'รหัส:'), 0, 0);
-            $this->UnderLine(173, $y_start, 22);
+            $this->Cell(40, 5, iconv('UTF-8', 'cp874', $staff[1] ?? ''), 0, 0);
 
+            // แถวล่าง (3,4)
             $y_start += 5;
             $this->SetXY(45, $y_start);
             $this->Cell(5, 5, '3.', 0, 0);
-            $this->UnderLine(50, $y_start, 40);
-            $this->SetXY(90, $y_start);
-            $this->Cell(15, 5, iconv('UTF-8', 'cp874', 'รหัส:'), 0, 0);
-            $this->UnderLine(97, $y_start, 20);
+            $this->Cell(40, 5, iconv('UTF-8', 'cp874', $staff[2] ?? ''), 0, 0);
 
             $this->SetXY(120, $y_start);
             $this->Cell(5, 5, '4.', 0, 0);
-            $this->UnderLine(125, $y_start, 40);
-            $this->SetXY(165, $y_start);
-            $this->Cell(15, 5, iconv('UTF-8', 'cp874', 'รหัส:'), 0, 0);
-            $this->UnderLine(173, $y_start, 22);
+            $this->Cell(40, 5, iconv('UTF-8', 'cp874', $staff[3] ?? ''), 0, 0);
 
             // ผลการปฏิบัติงาน
             $y_start += 5;
+            // อ่านค่าจากฐานข้อมูล
+            $operation_result = trim($data['operation_result']); // เช่น "พบเหตุ" หรือ "ไม่พบเหตุ"
+
+            // วาดคำว่า "ผลการปฏิบัติงาน"
             $this->SetXY(15, $y_start);
             $this->Cell(35, 5, iconv('UTF-8', 'cp874', 'ผลการปฏิบัติงาน'), 0, 0);
-            $this->CheckBox(50, $y_start + 1, 3);
+
+            // CheckBox "ไม่พบเหตุ"
+            $this->CheckBox(50, $y_start + 1, 3); // ช่องเปล่า
+            if ($operation_result == 'ไม่พบเหตุ') {
+                $this->SetXY(50, $y_start + 0.5);
+                $this->SetFont('THSarabun', '', 12);
+                $this->Cell(3, 3, iconv('UTF-8', 'cp874', '/'), 0, 0, 'C');
+            }
             $this->SetXY(55, $y_start);
             $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'ไม่พบเหตุ'), 0, 0);
-            $this->CheckBox(75, $y_start + 1, 3);
+
+            // CheckBox "พบเหตุ"
+            $this->CheckBox(75, $y_start + 1, 3); // ช่องเปล่า
+            if ($operation_result == 'พบเหตุ') {
+                $this->SetXY(75, $y_start + 0.5);
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->Cell(3, 2, iconv('UTF-8', 'cp874', '/'), 0, 0, 'C');
+                $this->SetFont('THSarabun', '', 11);
+            }
             $this->SetXY(80, $y_start);
-            $this->Cell(40, 5, iconv('UTF-8', 'cp874', 'พบเหตุ สถานที่เกิดเหตุ'), 0, 0);
+            $this->Cell(40, 5, iconv('UTF-8', 'cp874', 'พบเหตุ'), 0, 0);
+
+            $this->SetXY(88, $y_start);
+            $this->Cell(40, 5, iconv('UTF-8', 'cp874', 'สถานที่เกิดเหตุ'), 0, 0);
             $this->UnderLine(105, $y_start, 90);
 
             $y_start += 5;
@@ -118,7 +146,7 @@ if (isset($_GET['cetak'])) {
         }
 
         // Section 2: ข้อมูลเวลา
-        function Section2()
+        function Section2($data)
         {
             $this->SetFont('THSarabun', 'B', 12);
             $this->Cell(0, 6, iconv('UTF-8', 'cp874', '2. ข้อมูลเวลา'), 0, 1);
@@ -290,7 +318,7 @@ if (isset($_GET['cetak'])) {
         }
 
         // Section 3: ข้อมูลผู้ป่วย
-        function Section3()
+        function Section3($data)
         {
             $this->SetFont('THSarabun', 'B', 12);
             $this->Cell(0, 6, iconv('UTF-8', 'cp874', '3. ข้อมูลผู้ป่วย'), 0, 1);
@@ -641,7 +669,7 @@ if (isset($_GET['cetak'])) {
         }
 
         // Section 4: เกณฑ์การตัดสินใจส่งโรงบาล (โดยหัวหน้าทีมและ/ผ่านการเห็นชอบของศูนย์ฯ)
-        function Section4()
+        function Section4($data)
         {
             $this->SetFont('THSarabun', 'B', 12);
             $this->Cell(0, 6, iconv('UTF-8', 'cp874', '4. เกณฑ์การตัดสินใจส่งโรงบาล (โดยหัวหน้าทีมและ/ผ่านการเห็นชอบของศูนย์ฯ)'), 0, 1);
@@ -694,7 +722,7 @@ if (isset($_GET['cetak'])) {
         }
 
         // Section 5: การประเมิน
-        function Section5()
+        function Section5($data)
         {
             $this->SetFont('THSarabun', 'B', 12);
             $this->Cell(0, 6, iconv('UTF-8', 'cp874', '5. การประเมิน/รับรองการนำส่ง (โดยแพทย์ พยาบาล ประจำโรงพยาบาลที่รับดูแลต่อ)'), 0, 1);
@@ -817,7 +845,7 @@ if (isset($_GET['cetak'])) {
         }
 
         // Section 6: ผลการรักษาที่/ในโรงพยาบาล (ติดตามใน 24 ชั่วโมง)
-        function Section6()
+        function Section6($data)
         {
             $this->SetFont('THSarabun', 'B', 12);
             $this->Cell(0, 6, iconv('UTF-8', 'cp874', '6. ผลการรักษาที่/ในโรงพยาบาล (ติดตามใน 24 ชั่วโมง)'), 0, 1);
@@ -863,21 +891,26 @@ if (isset($_GET['cetak'])) {
             $this->SetY($this->GetY() + 25);
         }
     }
+    try {
+        $pdf = new MedicalForm();
+        $pdf->AddPage();
+        $data = $pdf->LoadData($pdo, $id);
 
-    // การใช้งาน
-    $pdf = new MedicalForm();
-    $pdf->AliasNbPages();
-    $pdf->AddPage();
-
-    // เรียกใช้แต่ละ section
-    $pdf->Section1();
-    $pdf->Section2();
-    $pdf->Section3();
-    $pdf->Section4();
-    $pdf->Section5();
-    $pdf->Section6();
-
-    $pdf->Output();
+        if ($data) {
+            $pdf->Section1($data);
+            $pdf->Section2($data);
+            $pdf->Section3($data);
+            $pdf->Section4($data);
+            $pdf->Section5($data);
+            $pdf->Section6($data);
+            $pdf->Output();
+        } else {
+            echo "ไม่พบข้อมูล ID นี้";
+        }
+        exit;
+    } catch (PDOException $e) {
+        echo "เกิดข้อผิดพลาด: " . $e->getMessage();
+    }
 } else {
 
     include_once("../sidebar.php");
@@ -1354,7 +1387,7 @@ if (isset($_GET['cetak'])) {
                                                 <td><?= $incident['report_summarizer'] ?></td>
                                                 <td>
                                                     <div class="btn-group">
-                                                        <a href="?cetak" class="btn btn-sm btn-success me-1" title="พิมพ์">
+                                                        <a href="index.php?cetak&id=<?= $incident['id'] ?>" class="btn btn-sm btn-success me-1" title="พิมพ์">
                                                             <i class="fas fa-print"></i>
                                                         </a>
                                                         <a href="?details=<?= $incident['id'] ?>" class="btn btn-sm btn-info me-1" title="ดูรายละเอียด">
