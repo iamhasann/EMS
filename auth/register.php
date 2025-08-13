@@ -207,7 +207,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="auth-wrapper v3">
             <div class="auth-form">
                 <div class="auth-header">
-                    <a href="index.php"><img src="../assets/img/kaiadmin/BLOGO.png" alt="img" width="10%"></a>
+                    <a href="../auth/"><img src="../assets/img/kaiadmin/BLOGO.png" alt="img" width="10%"></a>
                 </div>
                 <div class="card my-5">
                     <div class="card-body">

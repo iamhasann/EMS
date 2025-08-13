@@ -116,8 +116,9 @@ if (isset($_GET['cetak']) && isset($_GET['id'])) {
             $this->CheckBox(50, $y_start + 1, 3); // ช่องเปล่า
             if ($operation_result == 'ไม่พบเหตุ') {
                 $this->SetXY(50, $y_start + 0.5);
-                $this->SetFont('THSarabun', '', 12);
-                $this->Cell(3, 3, iconv('UTF-8', 'cp874', '/'), 0, 0, 'C');
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->Cell(3, 2, iconv('UTF-8', 'cp874', '/'), 0, 0, 'C');
+                $this->SetFont('THSarabun', '', 11);
             }
             $this->SetXY(55, $y_start);
             $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'ไม่พบเหตุ'), 0, 0);
@@ -134,13 +135,13 @@ if (isset($_GET['cetak']) && isset($_GET['id'])) {
             $this->Cell(40, 5, iconv('UTF-8', 'cp874', 'พบเหตุ'), 0, 0);
 
             $this->SetXY(88, $y_start);
-            $this->Cell(40, 5, iconv('UTF-8', 'cp874', 'สถานที่เกิดเหตุ'), 0, 0);
-            $this->UnderLine(105, $y_start, 90);
+            $this->Cell(17, 5, iconv('UTF-8', 'cp874', 'สถานที่เกิดเหตุ'), 0, 0);
+            $this->Cell(15, 5, iconv('UTF-8', 'cp874', $data['incident_location']), 0, 0);
 
             $y_start += 5;
             $this->SetXY(45, $y_start);
-            $this->Cell(35, 5, iconv('UTF-8', 'cp874', 'เหตุการณ์'), 0, 0);
-            $this->UnderLine(57, $y_start, 138);
+            $this->Cell(12, 5, iconv('UTF-8', 'cp874', 'เหตุการณ์'), 0, 0);
+            $this->Cell(15, 5, iconv('UTF-8', 'cp874', $data['incident_description']), 0, 0);
 
             $this->SetY($this->GetY() + 7);
         }
@@ -154,16 +155,16 @@ if (isset($_GET['cetak']) && isset($_GET['id'])) {
             // เริ่มตำแหน่ง
             $x_start = 10;
             $y_start = $this->GetY();
-            $cell_height = 10;
+            $cell_height = 7;
 
             $col_widths = [24, 24, 24, 24, 24, 24, 23, 23];
 
             // ====== แถว 1-2: เวลา (น.)
             $headers = ['เวลา (น.)', 'รับแจ้ง', 'สั่งการ', 'ออกจากฐาน', 'ถึงที่เกิดเหตุ', 'ออกจากที่เกิดเหตุ', 'ถึง รพ.', 'กลับถึงฐาน'];
-            $sub_values = ['09:15', '09:18', '09:20', '09:30', '09:40', '09:55', '10:20']; // ข้อความในแถวที่ 2
+            $sub_values = [$data['receive_time'], $data['order_time'], $data['exit_base_time'], $data['arrive_scene_time'], $data['leave_scene_time'], $data['arrive_hospital_time'], $data['return_base_time']]; // ข้อความในแถวที่ 2
 
             $x = $x_start;
-            $this->SetFont('THSarabun', 'B', 10);
+            $this->SetFont('THSarabun', '', 11);
             foreach ($headers as $i => $header) {
                 if ($i == 0) {
                     // ช่อง "เวลา (น.)" ผสานแนวตั้ง
@@ -193,7 +194,7 @@ if (isset($_GET['cetak']) && isset($_GET['id'])) {
             $x = $x_start;
 
             // รวมเวลา (แนวตั้ง 2 ช่อง)
-            $this->SetFont('THSarabun', 'B', 10);
+            $this->SetFont('THSarabun', '', 11);
             $this->Rect($x, $y, $col_widths[0], $cell_height * 2);
             $this->SetXY($x, $y + 5);
             $this->Cell($col_widths[0], 5, iconv('UTF-8', 'cp874', 'รวมเวลา (นาที)'), 0, 0, 'C');
@@ -202,42 +203,36 @@ if (isset($_GET['cetak']) && isset($_GET['id'])) {
             // Response time = ... นาที (ผสาน 4 ช่องแนวนอน)
             $w_resp = array_sum(array_slice($col_widths, 1, 4));
             $this->Rect($x, $y, $w_resp, $cell_height * 2);
-            $this->SetXY($x + 2, $y + 5);
+            $this->SetXY($x + 20, $y + 5);
             $this->Cell(30, 5, 'Response time =', 0, 0);
-            $this->UnderLine($x + 38, $y + 5, 25);
-            $this->Cell(15, 5, iconv('UTF-8', 'cp874', 'นาที'), 0, 0);
-
-            // สุ่มและใส่ค่า Response time (5-30 นาที)
-            $resp_time = rand(5, 30);
             $this->SetXY($x + 38, $y + 5);
-            $this->Cell(25, 5, $resp_time, 0, 0, 'C');
+            $this->Cell(25, 5, $data['response_time'], 0, 0, 'C');
+            $this->Cell(15, 5, iconv('UTF-8', 'cp874', 'นาที'), 0, 0);
 
             $x += $w_resp;
 
             // นาที (แถวบน - รวม 2 ช่อง)
             $w_mid = $col_widths[5] + $col_widths[6];
-            $this->Rect($x, $y, $w_mid, $cell_height); // วาดกรอบรวม 2 ช่อง
-            $this->SetXY($x + 2, $y + 2);
+            $this->Rect($x, $y, $w_mid, $cell_height);
+            $this->SetXY($x + 15, $y + 2);
+            $this->Cell(5, 5, iconv('UTF-8', 'cp874', $data['total_distance_go']), 0, 0);
             $this->Cell($w_mid - 4, 5, iconv('UTF-8', 'cp874', 'นาที'), 0, 0, 'L');
             $x += $w_mid;
 
-            // ช่องว่างด้านขวา (แถวบน - คอลัมน์ที่ 7)
+            // ช่องว่างด้านขวา
             $this->Rect($x, $y, $col_widths[7], $cell_height);
 
-            // รีเซ็ต $x สำหรับแถวล่าง
+            // รีเซ็ต x
             $x -= $w_mid;
 
-            // ขยับเส้นแบ่งขวา 3 หน่วย
+            // ช่องว่าง (แถวล่าง)
             $shift = -1;
-
-            // ช่องว่าง (แถวล่าง - ช่องซ้าย 1 ช่อง) — ลดความกว้างลง
             $this->Rect($x, $y + $cell_height, $col_widths[7] - $shift, $cell_height);
 
-            // ช่อง "นาที" (แถวล่าง - ผสาน 2 ช่องขวา) — เริ่มจากขวาและเพิ่มกว้าง
+            // ช่อง "นาที" (แถวล่าง)
             $this->Rect($x + $col_widths[7] - $shift, $y + $cell_height, $w_mid + $shift, $cell_height);
-
-            // ใส่ข้อความ "นาที"
-            $this->SetXY($x + $col_widths[7] + 2, $y + $cell_height + 2);
+            $this->SetXY($x + $col_widths[7] + 15, $y + $cell_height + 2);
+            $this->Cell(5, 5, iconv('UTF-8', 'cp874', $data['total_distance_back']), 0, 0);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'นาที'), 0, 0);
 
 
@@ -250,22 +245,28 @@ if (isset($_GET['cetak']) && isset($_GET['id'])) {
             $this->Cell($col_widths[0], 5, iconv('UTF-8', 'cp874', 'เลข กม.'), 0, 0, 'C');
             $x += $col_widths[0];
 
-            // สุ่มและใส่เลข กม. ใน 4 ช่องหลัก
-            $km_widths = [
-                array_sum(array_slice($col_widths, 1, 3)), // ช่องที่ 1 (กว้าง 72)
-                array_sum(array_slice($col_widths, 4, 2)), // ช่องที่ 2 (กว้าง 48)
-                $col_widths[6],                           // ช่องที่ 3 (กว้าง 23)
-                $col_widths[7]                            // ช่องที่ 4 (กว้าง 23)
+            // เลข กม. จากฐานข้อมูล
+            $km_values = [
+                $data['number_km_1'],
+                $data['number_km_2'],
+                $data['number_km_3'],
+                $data['number_km_4']
             ];
 
-            $km_values = [];
+            $km_widths = [
+                array_sum(array_slice($col_widths, 1, 3)),
+                array_sum(array_slice($col_widths, 4, 2)),
+                $col_widths[6],
+                $col_widths[7]
+            ];
+
             for ($i = 0; $i < 4; $i++) {
-                $km_values[$i] = number_format(rand(5, 50) / 10, 1); // สุ่ม 0.5 - 5.0 km
                 $this->Rect($x, $y, $km_widths[$i], $cell_height);
                 $this->SetXY($x, $y + 2);
                 $this->Cell($km_widths[$i], 5, $km_values[$i], 0, 0, 'C');
                 $x += $km_widths[$i];
             }
+
 
             // ====== แถว 6-7: ระยะทาง
             $y += $cell_height;
@@ -276,42 +277,35 @@ if (isset($_GET['cetak']) && isset($_GET['id'])) {
             $this->Cell($col_widths[0], 5, iconv('UTF-8', 'cp874', 'ระยะทาง (กม.)'), 0, 0, 'C');
             $x += $col_widths[0];
 
-            // รวมระยะทางไป (สุ่ม 1.0 - 20.0 km)
-            $total_distance = number_format(rand(10, 200) / 10, 1);
+            // รวมระยะทางไป
             $this->Rect($x, $y, array_sum(array_slice($col_widths, 1, 4)), $cell_height * 2);
-            $this->SetXY($x + 2, $y + 5);
+            $this->SetXY($x + 20, $y + 5);
             $this->Cell(35, 5, iconv('UTF-8', 'cp874', 'รวมระยะทางไป'), 0);
-            $this->UnderLine($x + 40, $y + 5, 25);
             $this->SetXY($x + 40, $y + 5);
-            $this->Cell(25, 5, $total_distance, 0, 0, 'C');
+            $this->Cell(25, 5, $data['total_km_go'], 0, 0, 'C');
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'กม.'), 0);
 
             $x += array_sum(array_slice($col_widths, 1, 4));
 
             // ช่องแรก
             $this->Rect($x, $y, $col_widths[5], $cell_height);
-            $this->SetXY($x + 1, $y + 2); // ขยับเล็กน้อยเพื่อเว้นขอบ
-            $this->Cell($col_widths[5] - 2, 5, iconv('UTF-8', 'cp874', 'ข้อความ A'), 0, 0, 'L');
+            $this->SetXY($x + 1, $y + 2);
+            $this->Cell($col_widths[5] - 2, 5, iconv('UTF-8', 'cp874', ''), 0, 0, 'L');
 
-            // ช่องสอง (ถัดจากช่องแรก)
+            // ช่องสอง
             $x2 = $x + $col_widths[5];
             $w2 = $col_widths[6] + $col_widths[7];
-
             $this->Rect($x2, $y, $w2, $cell_height);
-            $this->SetXY($x2 + 1, $y + 2);
-            $this->Cell($w2 - 2, 5, iconv('UTF-8', 'cp874', 'ข้อความ B'), 0, 0, 'L');
+            $this->SetXY($x2 + 6, $y + 2);
+            $total_km_go_home = 'ระยะทางกลับ   ' . $data['total_km_go_home'] . '   กม.';
+            $this->Cell($w2 - 2, 5, iconv('UTF-8', 'cp874', $total_km_go_home), 0, 0, 'L');
 
-
-            // ระยะไป รพ. (สุ่ม 0.5 - 10.0 km)
-            $hospital_distance = number_format(rand(5, 100) / 10, 1);
+            // ระยะไป รพ.
             $this->Rect($x, $y + $cell_height, $col_widths[5] + $col_widths[6], $cell_height);
             $this->Rect($x + $col_widths[5] + $col_widths[6], $y + $cell_height, $col_widths[7], $cell_height);
-            $this->SetXY($x + $col_widths[5] + 2, $y + $cell_height + 2);
-            $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'ระยะไป รพ.'), 0);
-            $this->UnderLine($x + $col_widths[5] + 27, $y + $cell_height + 2, 20);
-            $this->SetXY($x + $col_widths[5] + 27, $y + $cell_height + 2);
-            $this->Cell(20, 5, $hospital_distance, 0, 0, 'C');
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'กม.'), 0);
+            $this->SetXY($x + $col_widths[5] + -12, $y + $cell_height + 2);
+            $total_km_go_hosp = 'ระยะไป รพ.   ' . $data['total_km_go_hosp'] . '   กม.';
+            $this->Cell(10, 5, iconv('UTF-8', 'cp874', $total_km_go_hosp), 0, 0, 'L');
 
             // ยก Y ลงแถวถัดไป
             $this->SetY($y + $cell_height * 2 + 0);
@@ -331,49 +325,119 @@ if (isset($_GET['cetak']) && isset($_GET['id'])) {
             // ชื่อผู้ป่วย
             $y_start += -3;
             $this->SetXY(15, $y_start + 5);
-            $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'ชื่อผู้ป่วย:'), 0, 0);
-            $this->UnderLine(25, $y_start + 5, 60);
+            $this->Cell(12, 5, iconv('UTF-8', 'cp874', 'ชื่อผู้ป่วย:'), 0, 0);
+            $this->Cell(15, 5, iconv('UTF-8', 'cp874', $data['patient_name']), 0, 0);
 
             $this->SetXY(85, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'อายุ'), 0, 0);
-            $this->UnderLine(91, $y_start + 5, 15);
+            $this->Cell(8, 5, iconv('UTF-8', 'cp874', 'อายุ'), 0, 0);
+            $this->Cell(15, 5, iconv('UTF-8', 'cp874', $data['patient_age']), 0, 0);
             $this->SetXY(106, $y_start + 5);
             $this->Cell(50, 5, iconv('UTF-8', 'cp874', 'ปี'), 0, 0);
+
+
+            // อ่านค่าจากฐานข้อมูล
+            $patient_gender = trim($data['patient_gender']); // เช่น "หญิง" หรือ "ชาย"
+
             $this->SetXY(110, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'เพศ'), 0, 0);
 
-            $this->CheckBox(117, $y_start + 6, 3);
+            // CheckBox "ชาย"
+            $this->CheckBox(117, $y_start + 6, 3); // ช่องเปล่า
+            if ($patient_gender == 'ชาย') {
+                $this->SetXY(117, $y_start + 5.8);
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+                $this->SetFont('THSarabun', '', 11);
+            }
             $this->SetXY(120, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ชาย'), 0, 0);
-            $this->CheckBox(127, $y_start + 6, 3);
+
+            // CheckBox "หญิง"
+            $this->CheckBox(127, $y_start + 6, 3); // ช่องเปล่า
+            if ($patient_gender == 'หญิง') {
+                $this->SetXY(127, $y_start + 5.8);
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+                $this->SetFont('THSarabun', '', 11);
+            }
             $this->SetXY(130, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'หญิง'), 0, 0);
 
             // เลขบัตรประชาชน
             $y_start += 5;
             $this->SetXY(15, $y_start + 5);
-            $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'เลขบัตรประชาชน:'), 0, 0);
-            $this->UnderLine(35, $y_start + 5, 100);
+            $this->Cell(21, 5, iconv('UTF-8', 'cp874', 'เลขบัตรประชาชน:'), 0, 0);
+            $this->Cell(15, 5, iconv('UTF-8', 'cp874', $data['patient_id_card']), 0, 0);
 
-            // สิทธิการรักษา
+            // ===== สิทธิการรักษา (ไม่มี MarkInBox) =====
             $y_start += 5;
+
+            // อ่านค่าจาก DB (รองรับหลายค่าคั่นด้วย , ; |)
+            $rights_raw = trim((string)($data['treatment_rights'] ?? ''));
+            $selected = array_filter(array_map('trim', preg_split('/[,\|;]+/', $rights_raw)));
+            $selLower = array_map(fn($v) => mb_strtolower($v, 'UTF-8'), $selected);
+            $picked = function (string $label) use ($selLower) {
+                return in_array(mb_strtolower($label, 'UTF-8'), $selLower, true);
+            };
+
             $this->SetXY(15, $y_start + 5);
             $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'สิทธิการรักษา:'), 0, 0);
+
+            // บัตรทอง
             $this->CheckBox(32, $y_start + 6, 3);
+            if ($picked('บัตรทอง')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(32, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+                $this->SetFont('THSarabun', '', 11);
+            }
             $this->SetXY(35, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'บัตรทอง'), 0, 0);
+            $this->Cell(16, 5, iconv('UTF-8', 'cp874', 'บัตรทอง'), 0, 0);
+
+            // ข้าราชการ
             $this->CheckBox(46, $y_start + 6, 3);
+            if ($picked('ข้าราชการ')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(46, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+                $this->SetFont('THSarabun', '', 11);
+            }
             $this->SetXY(49, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ข้าราชการ'), 0, 0);
+            $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'ข้าราชการ'), 0, 0);
+
+            // ประกันสังคม
             $this->CheckBox(62, $y_start + 6, 3);
+            if ($picked('ประกันสังคม')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(62, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+                $this->SetFont('THSarabun', '', 11);
+            }
             $this->SetXY(65, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ประกันสังคม'), 0, 0);
+            $this->Cell(24, 5, iconv('UTF-8', 'cp874', 'ประกันสังคม'), 0, 0);
+
+            // แรงงานต่างด้าวขึ้นทะเบียน
             $this->CheckBox(81, $y_start + 6, 3);
+            if ($picked('แรงงานต่างด้าวขึ้นทะเบียน')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(81, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+                $this->SetFont('THSarabun', '', 11);
+            }
             $this->SetXY(84, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'แรงงานต่างด้าวขึ้นทะเบียน'), 0, 0);
+            $this->Cell(36, 5, iconv('UTF-8', 'cp874', 'แรงงานต่างด้าวขึ้นทะเบียน'), 0, 0);
+
+            // ไม่มีหลักฐาน
             $this->CheckBox(114, $y_start + 6, 3);
+            if ($picked('ไม่มีหลักฐาน')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(114, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+                $this->SetFont('THSarabun', '', 11);
+            }
             $this->SetXY(117, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ไม่มีหลักฐาน'), 0, 0);
+            $this->Cell(22, 5, iconv('UTF-8', 'cp874', 'ไม่มีหลักฐาน'), 0, 0);
+
 
             // เส้นขวา
             $this->Line(140, $y_start + 12, 140, $y_start + -7);
@@ -381,18 +445,43 @@ if (isset($_GET['cetak']) && isset($_GET['id'])) {
             // เส้นแนวนอน
             $this->Line(200, $y_start + 12, 10, $y_start + 12);
 
-            // ประกันอื่นๆ
-            $this->SetXY(141, $y_start + -7);
+            // ===== ประกันอื่นๆ =====
+            $other_raw = trim((string)($data['other_insurance'] ?? ''));
+            $selectedOther = array_filter(array_map('trim', preg_split('/[,\|;]+/', $other_raw)));
+            $selLowerOther = array_map(fn($v) => mb_strtolower($v, 'UTF-8'), $selectedOther);
+            $pickedOther = function (string $label) use ($selLowerOther) {
+                return in_array(mb_strtolower($label, 'UTF-8'), $selLowerOther, true);
+            };
+
+            // หัวข้อประกันอื่นๆ
+            $this->SetXY(141, $y_start - 7);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ประกันอื่นๆ (ถ้ามี)'), 0, 0);
-            $this->CheckBox(142, $y_start + -1, 3);
-            $this->SetXY(146, $y_start + -2);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ประกันชีวิต'), 0, 0);
+
+            // ประกันชีวิต
+            $this->CheckBox(142, $y_start - 1, 3);
+            if ($pickedOther('ประกันชีวิต')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(142, $y_start - 1.2);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+                $this->SetFont('THSarabun', '', 11);
+            }
+            $this->SetXY(146, $y_start - 2);
+            $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'ประกันชีวิต'), 0, 0);
+
+            // ผู้ประสบภัยจากรถ
             $this->CheckBox(142, $y_start + 3, 3);
+            if ($pickedOther('ผู้ประสบภัยจากรถ')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(142, $y_start + 2.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+                $this->SetFont('THSarabun', '', 11);
+            }
             $this->SetXY(146, $y_start + 2);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ไม่มีหลักฐาน'), 0, 0);
+            $this->Cell(40, 5, iconv('UTF-8', 'cp874', 'ผู้ประสบภัยจากรถ'), 0, 0);
+
             $this->SetXY(141, $y_start + 6);
-            $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'เลขทะเบียนรถ:'), 0, 0);
-            $this->UnderLine(158, $y_start + 7, 40);
+            $this->Cell(18, 5, iconv('UTF-8', 'cp874', 'เลขทะเบียนรถ:'), 0, 0);
+            $this->Cell(15, 5, iconv('UTF-8', 'cp874', $data['license_plate']), 0, 0);
 
             $y_start += 7;
             $this->SetXY(100, $y_start + 5);
@@ -402,16 +491,41 @@ if (isset($_GET['cetak']) && isset($_GET['id'])) {
             // เส้นแนวนอน
             $this->Line(200, $y_start + 10, 10, $y_start + 10);
 
+            // ===== สิทธิการรักษา =====
             $y_start += 6;
+
+            // อ่านค่าจาก DB (รองรับทั้งค่าเดียวและหลายค่าคั่นด้วย , ; |)
+            $treat_raw = trim((string)($data['patient_condition'] ?? ''));
+            $selectedTreat = array_filter(array_map('trim', preg_split('/[,\|;]+/', $treat_raw)));
+            $selLowerTreat = array_map(fn($v) => mb_strtolower($v, 'UTF-8'), $selectedTreat);
+            $pickedTreat = function (string $label) use ($selLowerTreat) {
+                return in_array(mb_strtolower($label, 'UTF-8'), $selLowerTreat, true);
+            };
+
             $this->SetXY(15, $y_start + 5);
-            $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'สิทธิการรักษา:'), 0, 0);
+            $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'สิทธิการรักษา'), 0, 0);
+
+            // บาดเจ็บ/อุบัติเหตุ
             $this->CheckBox(32, $y_start + 6, 3);
+            if ($pickedTreat('บาดเจ็บ/อุบัติเหตุ')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(32, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+                $this->SetFont('THSarabun', '', 11);
+            }
             $this->SetXY(35, $y_start + 5);
-            $this->SetFont('THSarabun', '', 11);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'บาดเจ็บ/อุบัติเหตุ'), 0, 0);
+            $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'บาดเจ็บ/อุบัติเหตุ'), 0, 0);
+
+            // ป่วยฉุกเฉิน
             $this->CheckBox(55, $y_start + 6, 3);
+            if ($pickedTreat('ป่วยฉุกเฉิน')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(55, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+                $this->SetFont('THSarabun', '', 11);
+            }
             $this->SetXY(58, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ป่วยฉุกเฉิน'), 0, 0);
+            $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'ป่วยฉุกเฉิน'), 0, 0);
 
             // Vital Signs Table
             $y_table = $y_start + 10;
@@ -451,112 +565,435 @@ if (isset($_GET['cetak']) && isset($_GET['id'])) {
 
             // แถวข้อมูล (1 แถว)
             $this->SetXY($x, $y_table + 8);
-            $this->SetFont('THSarabun', '', 9);
+            $this->SetFont('THSarabun', '', 11);
+
+            // เตรียมค่าแสดงผลจาก DB (ถ้าว่างให้เป็น '-')
+            $vitalRow = [
+                'Time' => isset($data['vital_time']) ? trim((string)$data['vital_time']) : '',
+                'T'    => isset($data['vital_t']) ? trim((string)$data['vital_t']) : '',
+                'BP'   => isset($data['vital_bp']) ? trim((string)$data['vital_bp']) : '',
+                'PR'   => isset($data['vital_pr']) ? trim((string)$data['vital_pr']) : '',
+                'RR'   => isset($data['vital_rr']) ? trim((string)$data['vital_rr']) : '',
+                'E'    => isset($data['neuro_e']) ? trim((string)$data['neuro_e']) : '',
+                'V'    => isset($data['neuro_v']) ? trim((string)$data['neuro_v']) : '',
+                'M'    => isset($data['neuro_m']) ? trim((string)$data['neuro_m']) : '',
+                'DTX'  => isset($data['dtx']) ? trim((string)$data['dtx']) : '',
+            ];
+
+            // วาดเซลล์พร้อมใส่ค่า
             foreach (['Time', 'T', 'BP', 'PR', 'RR', 'E', 'V', 'M', 'DTX'] as $key) {
-                $this->Cell($vital_widths[$key], 10, '', 1, 0, 'C');
+                $val = ($vitalRow[$key] === '' ? '-' : $vitalRow[$key]);
+                $this->Cell($vital_widths[$key], 10, $val, 1, 0, 'C');
             }
 
+            // ===== ความรู้สึกตัว =====
             $y_start += 24;
+
+            // อ่านค่าจาก DB
+            $conscious_raw = trim((string)($data['consciousness'] ?? ''));
+            $selectedCons = array_filter(array_map('trim', preg_split('/[,\|;]+/', $conscious_raw)));
+            $selLowerCons = array_map(fn($v) => mb_strtolower($v, 'UTF-8'), $selectedCons);
+            $pickedCons = function (string $label) use ($selLowerCons) {
+                return in_array(mb_strtolower($label, 'UTF-8'), $selLowerCons, true);
+            };
+
             $this->SetXY(15, $y_start + 5);
             $this->SetFont('THSarabun', 'B', 11);
             $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'ความรู้สึกตัว'), 0, 0);
+
+            // รู้สึกตัวดี
             $this->CheckBox(32, $y_start + 6, 3);
-            $this->SetXY(35, $y_start + 5);
+            if ($pickedCons('รู้สึกตัวดี')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(32, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
             $this->SetFont('THSarabun', '', 11);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'รู้สึกตัวดี'), 0, 0);
+            $this->SetXY(35, $y_start + 5);
+            $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'รู้สึกตัวดี'), 0, 0);
+
+            // ซึม
             $this->CheckBox(48, $y_start + 6, 3);
+            if ($pickedCons('ซึม')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(48, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(51, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ซึม'), 0, 0);
-            $this->CheckBox(65, $y_start + 6, 3);
-            $this->SetXY(68, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'หมดสติปลุกตื่น'), 0, 0);
-            $this->CheckBox(86, $y_start + 6, 3);
-            $this->SetXY(89, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'หมดสติปลุกไม่ตื่น'), 0, 0);
-            $this->CheckBox(109, $y_start + 6, 3);
-            $this->SetXY(112, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'เอะอะโวยวาย'), 0, 0);
 
+            // หมดสติปลุกตื่น
+            $this->CheckBox(65, $y_start + 6, 3);
+            if ($pickedCons('หมดสติปลุกตื่น')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(65, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
+            $this->SetXY(68, $y_start + 5);
+            $this->Cell(30, 5, iconv('UTF-8', 'cp874', 'หมดสติปลุกตื่น'), 0, 0);
+
+            // หมดสติปลุกไม่ตื่น
+            $this->CheckBox(86, $y_start + 6, 3);
+            if ($pickedCons('หมดสติปลุกไม่ตื่น')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(86, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
+            $this->SetXY(89, $y_start + 5);
+            $this->Cell(40, 5, iconv('UTF-8', 'cp874', 'หมดสติปลุกไม่ตื่น'), 0, 0);
+
+            // เอะอะโวยวาย
+            $this->CheckBox(109, $y_start + 6, 3);
+            if ($pickedCons('เอะอะโวยวาย')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(109, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
+            $this->SetXY(112, $y_start + 5);
+            $this->Cell(30, 5, iconv('UTF-8', 'cp874', 'เอะอะโวยวาย'), 0, 0);
+
+            // ===== การหายใจ =====
             $y_start += 5;
+
+            // อ่านค่าจาก DB
+            $breath_raw = trim((string)($data['breathing_status'] ?? ''));
+            $selectedBreath = array_filter(array_map('trim', preg_split('/[,\|;]+/', $breath_raw)));
+            $selLowerBreath = array_map(fn($v) => mb_strtolower($v, 'UTF-8'), $selectedBreath);
+            $pickedBreath = function (string $label) use ($selLowerBreath) {
+                return in_array(mb_strtolower($label, 'UTF-8'), $selLowerBreath, true);
+            };
+
             $this->SetXY(15, $y_start + 5);
             $this->SetFont('THSarabun', 'B', 11);
             $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'การหายใจ'), 0, 0);
+
+            // ปกติ
             $this->CheckBox(32, $y_start + 6, 3);
-            $this->SetXY(35, $y_start + 5);
+            if ($pickedBreath('ปกติ')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(32, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
             $this->SetFont('THSarabun', '', 11);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ปกติ'), 0, 0);
+            $this->SetXY(35, $y_start + 5);
+            $this->Cell(15, 5, iconv('UTF-8', 'cp874', 'ปกติ'), 0, 0);
+
+            // เร็ว
             $this->CheckBox(48, $y_start + 6, 3);
+            if ($pickedBreath('เร็ว')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(48, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(51, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'เร็ว'), 0, 0);
+
+            // ช้า
             $this->CheckBox(65, $y_start + 6, 3);
+            if ($pickedBreath('ช้า')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(65, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(68, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ช้า'), 0, 0);
-            $this->CheckBox(86, $y_start + 6, 3);
-            $this->SetXY(89, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ไม่สม่ำเสมอ'), 0, 0);
-            $this->CheckBox(109, $y_start + 6, 3);
-            $this->SetXY(112, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ไม่หายใจ'), 0, 0);
 
+            // ไม่สม่ำเสมอ
+            $this->CheckBox(86, $y_start + 6, 3);
+            if ($pickedBreath('ไม่สม่ำเสมอ')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(86, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
+            $this->SetXY(89, $y_start + 5);
+            $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'ไม่สม่ำเสมอ'), 0, 0);
+
+            // ไม่หายใจ
+            $this->CheckBox(109, $y_start + 6, 3);
+            if ($pickedBreath('ไม่หายใจ')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(109, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
+            $this->SetXY(112, $y_start + 5);
+            $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'ไม่หายใจ'), 0, 0);
+
+            // ===== บาดแผล =====
             $y_start += 5;
+
+            // อ่านค่าจาก DB
+            $wound_raw = trim((string)($data['wound_type'] ?? ''));
+            $selectedWounds = array_filter(array_map('trim', preg_split('/[,\|;]+/', $wound_raw)));
+            $selLowerWounds = array_map(fn($v) => mb_strtolower($v, 'UTF-8'), $selectedWounds);
+            $pickedWound = function (string $label) use ($selLowerWounds) {
+                return in_array(mb_strtolower($label, 'UTF-8'), $selLowerWounds, true);
+            };
+
             $this->SetXY(15, $y_start + 5);
             $this->SetFont('THSarabun', 'B', 11);
             $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'บาดแผล'), 0, 0);
-            $this->CheckBox(32, $y_start + 6, 3);
-            $this->SetXY(35, $y_start + 5);
-            $this->SetFont('THSarabun', '', 11);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ไม่มี'), 0, 0);
-            $this->CheckBox(48, $y_start + 6, 3);
-            $this->SetXY(51, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'แผลถลอก'), 0, 0);
-            $this->CheckBox(65, $y_start + 6, 3);
-            $this->SetXY(68, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ฉีกขาด/ตัด'), 0, 0);
-            $this->CheckBox(86, $y_start + 6, 3);
-            $this->SetXY(89, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'แผลฟกช้ำ'), 0, 0);
-            $this->CheckBox(109, $y_start + 6, 3);
-            $this->SetXY(112, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'แผลไหม้'), 0, 0);
-            $this->CheckBox(123, $y_start + 6, 3);
-            $this->SetXY(126, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ถูกยิง'), 0, 0);
-            $this->CheckBox(134, $y_start + 6, 3);
-            $this->SetXY(137, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ถูกแทง'), 0, 0);
-            $this->CheckBox(147, $y_start + 6, 3);
-            $this->SetXY(150, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'อวัยวะตัดขาด'), 0, 0);
-            $this->CheckBox(167, $y_start + 6, 3);
-            $this->SetXY(170, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ถูกระเบิด'), 0, 0);
 
+            // ไม่มี
+            $this->CheckBox(32, $y_start + 6, 3);
+            if ($pickedWound('ไม่มี')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(32, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
+            $this->SetXY(35, $y_start + 5);
+            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ไม่มี'), 0, 0);
+
+            // แผลถลอก
+            $this->CheckBox(48, $y_start + 6, 3);
+            if ($pickedWound('แผลถลอก')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(48, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
+            $this->SetXY(51, $y_start + 5);
+            $this->Cell(15, 5, iconv('UTF-8', 'cp874', 'แผลถลอก'), 0, 0);
+
+            // ฉีกขาด/ตัด
+            $this->CheckBox(65, $y_start + 6, 3);
+            if ($pickedWound('ฉีกขาด/ตัด')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(65, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
+            $this->SetXY(68, $y_start + 5);
+            $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'ฉีกขาด/ตัด'), 0, 0);
+
+            // แผลฟกช้ำ
+            $this->CheckBox(86, $y_start + 6, 3);
+            if ($pickedWound('แผลฟกช้ำ')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(86, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
+            $this->SetXY(89, $y_start + 5);
+            $this->Cell(15, 5, iconv('UTF-8', 'cp874', 'แผลฟกช้ำ'), 0, 0);
+
+            // แผลไหม้
+            $this->CheckBox(109, $y_start + 6, 3);
+            if ($pickedWound('แผลไหม้')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(109, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
+            $this->SetXY(112, $y_start + 5);
+            $this->Cell(15, 5, iconv('UTF-8', 'cp874', 'แผลไหม้'), 0, 0);
+
+            // ถูกยิง
+            $this->CheckBox(123, $y_start + 6, 3);
+            if ($pickedWound('ถูกยิง')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(123, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
+            $this->SetXY(126, $y_start + 5);
+            $this->Cell(15, 5, iconv('UTF-8', 'cp874', 'ถูกยิง'), 0, 0);
+
+            // ถูกแทง
+            $this->CheckBox(134, $y_start + 6, 3);
+            if ($pickedWound('ถูกแทง')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(134, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
+            $this->SetXY(137, $y_start + 5);
+            $this->Cell(15, 5, iconv('UTF-8', 'cp874', 'ถูกแทง'), 0, 0);
+
+            // อวัยวะตัดขาด
+            $this->CheckBox(147, $y_start + 6, 3);
+            if ($pickedWound('อวัยวะตัดขาด')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(147, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
+            $this->SetXY(150, $y_start + 5);
+            $this->Cell(25, 5, iconv('UTF-8', 'cp874', 'อวัยวะตัดขาด'), 0, 0);
+
+            // ถูกระเบิด
+            $this->CheckBox(167, $y_start + 6, 3);
+            if ($pickedWound('ถูกระเบิด')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(167, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
+            $this->SetXY(170, $y_start + 5);
+            $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'ถูกระเบิด'), 0, 0);
+
+            // ===== กระดูกผิดรูป =====
             $y_start += 5;
+
+            // อ่านค่าจาก DB (รองรับหลายค่าคั่นด้วย , ; |)
+            $bone_raw = trim((string)($data['bone_status'] ?? ''));
+            $selectedBone = array_filter(array_map('trim', preg_split('/[,\|;]+/', $bone_raw)));
+            $selLowerBone = array_map(fn($v) => mb_strtolower($v, 'UTF-8'), $selectedBone);
+            $pickedBone = function (string $label) use ($selLowerBone) {
+                return in_array(mb_strtolower($label, 'UTF-8'), $selLowerBone, true);
+            };
+
             $this->SetXY(15, $y_start + 5);
             $this->SetFont('THSarabun', 'B', 11);
             $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'กระดูกผิดรูป'), 0, 0);
+
+            // ไม่มี
             $this->CheckBox(32, $y_start + 6, 3);
-            $this->SetXY(35, $y_start + 5);
+            if ($pickedBone('ไม่มี')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(32, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
             $this->SetFont('THSarabun', '', 11);
+            $this->SetXY(35, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ไม่มี'), 0, 0);
+
+            // ผิดรูป
             $this->CheckBox(48, $y_start + 6, 3);
+            if ($pickedBone('ผิดรูป')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(48, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(51, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ผิดรูป'), 0, 0);
 
             // เส้นแนวนอน
             $this->Line(200, $y_start + 11, 10, $y_start + 11);
 
+            // ===== อวัยวะ =====
             $y_start += 6;
+
+            // อ่านค่าจาก DB (รองรับหลายค่าคั่นด้วย , ; |)
+            $organ_raw = trim((string)($data['affected_organ'] ?? ''));
+            $selectedOrgan = array_filter(array_map('trim', preg_split('/[,\|;]+/', $organ_raw)));
+            $selLowerOrgan = array_map(fn($v) => mb_strtolower($v, 'UTF-8'), $selectedOrgan);
+            $pickedOrgan = function (string $label) use ($selLowerOrgan) {
+                return in_array(mb_strtolower($label, 'UTF-8'), $selLowerOrgan, true);
+            };
+
             $this->SetXY(15, $y_start + 5);
             $this->SetFont('THSarabun', 'B', 11);
             $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'อวัยวะ'), 0, 0);
+
+            // ศรีษะ/คอ
             $this->CheckBox(32, $y_start + 6, 3);
-            $this->SetXY(35, $y_start + 5);
+            if ($pickedOrgan('ศีรษะ/คอ')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(32, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
             $this->SetFont('THSarabun', '', 11);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'บาดเจ็บ/อุบัติเหตุ'), 0, 0);
-            $this->CheckBox(55, $y_start + 6, 3);
-            $this->SetXY(58, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ป่วยฉุกเฉิน'), 0, 0);
+            $this->SetXY(35, $y_start + 5);
+            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ศีรษะ/คอ'), 0, 0);
+
+            // ใบหน้า
+            $this->CheckBox(48, $y_start + 6, 3);
+            if ($pickedOrgan('ใบหน้า')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(48, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
+            $this->SetXY(51, $y_start + 5);
+            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ใบหน้า'), 0, 0);
+
+            // สันหลัง/หลัง
+            $this->CheckBox(61, $y_start + 6, 3);
+            if ($pickedOrgan('สันหลัง/หลัง')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(61, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
+            $this->SetXY(64, $y_start + 5);
+            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'สันหลัง/หลัง'), 0, 0);
+
+            // หน้าอก/ไหปลาร้า
+            $this->CheckBox(80, $y_start + 6, 3);
+            if ($pickedOrgan('หน้าอก/ไหปลาร้า')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(80, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
+            $this->SetXY(83, $y_start + 5);
+            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'หน้าอก/ไหปลาร้า'), 0, 0);
+
+            // ช่องท้อง
+            $this->CheckBox(104, $y_start + 6, 3);
+            if ($pickedOrgan('ช่องท้อง')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(104, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
+            $this->SetXY(107, $y_start + 5);
+            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ช่องท้อง'), 0, 0);
+
+            // เชิงกราน
+            $this->CheckBox(118, $y_start + 6, 3);
+            if ($pickedOrgan('เชิงกราน')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(118, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
+            $this->SetXY(121, $y_start + 5);
+            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'เชิงกราน'), 0, 0);
+
+            // Extremities
+            $this->CheckBox(133, $y_start + 6, 3);
+            if ($pickedOrgan('Extremities')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(133, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
+            $this->SetXY(136, $y_start + 5);
+            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'Extremities'), 0, 0);
+
+            // ผิวหนัง
+            $this->CheckBox(152, $y_start + 6, 3);
+            if ($pickedOrgan('ผิวหนัง')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(152, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
+            $this->SetXY(155, $y_start + 5);
+            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ผิวหนัง'), 0, 0);
+
+            // Multiple injury back
+            $this->CheckBox(166, $y_start + 6, 3);
+            if ($pickedOrgan('Multiple injury back')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(166, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
+            $this->SetXY(169, $y_start + 5);
+            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'Multiple injury back'), 0, 0);
+
 
             // เส้นแนวนอน
             $this->Line(200, $y_start + 10, 10, $y_start + 10);
@@ -569,101 +1006,319 @@ if (isset($_GET['cetak']) && isset($_GET['id'])) {
             // เส้นแนวนอน
             $this->Line(200, $y_start + 10, 10, $y_start + 10);
 
+            // ===== ทางเดินหายใจ/การหายใจ =====
             $y_start += 5;
+
+            // อ่านค่าจาก DB (รองรับหลายค่าคั่นด้วย , ; |)
+            $airway_raw = trim((string)($data['airway_assistance'] ?? ''));
+            $selectedAirway = array_filter(array_map('trim', preg_split('/[,\|;]+/', $airway_raw)));
+            $selLowerAirway = array_map(fn($v) => mb_strtolower($v, 'UTF-8'), $selectedAirway);
+            $pickedAirway = function (string $label) use ($selLowerAirway) {
+                return in_array(mb_strtolower($label, 'UTF-8'), $selLowerAirway, true);
+            };
+
             $this->SetXY(15, $y_start + 5);
             $this->SetFont('THSarabun', 'B', 11);
-            $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'ทางเดินหายใจ/การหายใจ'), 0, 0);
+            $this->Cell(30, 5, iconv('UTF-8', 'cp874', 'ทางเดินหายใจ/การหายใจ'), 0, 0);
             $this->SetFont('THSarabun', '', 11);
+
+            // ไม่
             $this->CheckBox(45, $y_start + 6, 3);
+            if ($pickedAirway('ไม่')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(45, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(48, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ไม่'), 0, 0);
+
+            // เปิดทางเดินหายใจ
             $this->CheckBox(59, $y_start + 6, 3);
+            if ($pickedAirway('เปิดทางเดินหายใจ')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(59, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(62, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'เปิดทางเดินหายใจ'), 0, 0);
+
+            // ใส่ Oral airway
             $this->CheckBox(88, $y_start + 6, 3);
+            if ($pickedAirway('ใส่ oral airway')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(88, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(91, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ใส่ Oral airway'), 0, 0);
+
+            // ให้ O2 canula/mask
             $this->CheckBox(110, $y_start + 6, 3);
+            if ($pickedAirway('ให้ o2 canula/mask')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(110, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(113, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ให้ O2 canula/mask'), 0, 0);
+
+            // Ambu bag
             $this->CheckBox(138, $y_start + 6, 3);
+            if ($pickedAirway('ambu bag')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(138, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(141, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'Ambu bag'), 0, 0);
+
+            // Pocket Mask
             $this->CheckBox(156, $y_start + 6, 3);
+            if ($pickedAirway('pocket mask')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(156, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(159, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'Pocket Mask'), 0, 0);
 
+            // ===== บาดแผล/ห้ามเลือด =====
             $y_start += 5;
+
+            // อ่านค่าจาก DB (รองรับหลายค่าคั่นด้วย , ; |)
+            $wound_raw = trim((string)($data['wound_care'] ?? ''));
+            $selectedWound = array_filter(array_map('trim', preg_split('/[,\|;]+/', $wound_raw)));
+            $selLowerWound = array_map(fn($v) => mb_strtolower($v, 'UTF-8'), $selectedWound);
+            $pickedWound = function (string $label) use ($selLowerWound) {
+                return in_array(mb_strtolower($label, 'UTF-8'), $selLowerWound, true);
+            };
+
             $this->SetXY(15, $y_start + 5);
             $this->SetFont('THSarabun', 'B', 11);
-            $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'บาดแผล/ห้ามเลือด'), 0, 0);
+            $this->Cell(30, 5, iconv('UTF-8', 'cp874', 'บาดแผล/ห้ามเลือด'), 0, 0);
             $this->SetFont('THSarabun', '', 11);
+
+            // ไม่
             $this->CheckBox(45, $y_start + 6, 3);
+            if ($pickedWound('ไม่')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(45, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(48, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ไม่'), 0, 0);
+
+            // การกดห้ามเลือด
             $this->CheckBox(59, $y_start + 6, 3);
+            if ($pickedWound('การกดห้ามเลือด')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(59, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(62, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'การกดห้ามเลือด'), 0, 0);
+
+            // ทำแผล
             $this->CheckBox(88, $y_start + 6, 3);
+            if ($pickedWound('ทำแผล')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(88, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(91, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ทำแผล'), 0, 0);
 
+            // ===== การดามกระดูก =====
             $y_start += 5;
+
+            // อ่านค่าจาก DB (รองรับหลายค่าคั่นด้วย , ; |)
+            $immob_raw = trim((string)($data['bone_immobilization'] ?? ''));
+            $selectedImmob = array_filter(array_map('trim', preg_split('/[,\|;]+/', $immob_raw)));
+            $selLowerImmob = array_map(fn($v) => mb_strtolower($v, 'UTF-8'), $selectedImmob);
+            $pickedImmob = function (string $label) use ($selLowerImmob) {
+                return in_array(mb_strtolower($label, 'UTF-8'), $selLowerImmob, true);
+            };
+
             $this->SetXY(15, $y_start + 5);
             $this->SetFont('THSarabun', 'B', 11);
             $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'การดามกระดูก'), 0, 0);
             $this->SetFont('THSarabun', '', 11);
+
+            // ไม่
             $this->CheckBox(45, $y_start + 6, 3);
+            if ($pickedImmob('ไม่')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(45, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(48, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ไม่'), 0, 0);
+
+            // เฝือกลม/ไม้ดาม/sling
             $this->CheckBox(59, $y_start + 6, 3);
+            if ($pickedImmob('เฝือกลม/ไม้ดาม/sling')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(59, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(62, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'เฝือกลม/ไม้ดาม/sling'), 0, 0);
+
+            // เฝือกดามคอและกระดานรองหลังยาว
             $this->CheckBox(88, $y_start + 6, 3);
+            if ($pickedImmob('เฝือกดามคอและกระดานรองหลังยาว')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(88, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(91, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'เฝือกดามคอและกระดานรองหลังยาว'), 0, 0);
+
+            // เฝือกหลังและคอ (KED)
             $this->CheckBox(132, $y_start + 6, 3);
+            if ($pickedImmob('เฝือกหลังและคอ (KED)')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(132, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(135, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'เฝือกหลังและคอ (KED)'), 0, 0);
 
+            // ===== ช่วยฟื้นคืนชีพ =====
             $y_start += 5;
+
+            // อ่านค่าจาก DB (รองรับหลายค่าคั่นด้วย , ; |)
+            $resus_raw = trim((string)($data['resuscitation'] ?? ''));
+            $selectedResus = array_filter(array_map('trim', preg_split('/[,\|;]+/', $resus_raw)));
+            $selLowerResus = array_map(fn($v) => mb_strtolower($v, 'UTF-8'), $selectedResus);
+            $pickedResus = function (string $label) use ($selLowerResus) {
+                return in_array(mb_strtolower($label, 'UTF-8'), $selLowerResus, true);
+            };
+
             $this->SetXY(15, $y_start + 5);
             $this->SetFont('THSarabun', 'B', 11);
             $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'ช่วยฟื้นคืนชีพ'), 0, 0);
             $this->SetFont('THSarabun', '', 11);
+
+            // ไม่ได้ทำ
             $this->CheckBox(45, $y_start + 6, 3);
+            if ($pickedResus('ไม่ได้ทำ')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(45, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(48, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ไม่ได้ทำ'), 0, 0);
+
+            // ทำ
             $this->CheckBox(59, $y_start + 6, 3);
+            if ($pickedResus('ทำ')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(59, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(62, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ทำ'), 0, 0);
 
             // เส้นแนวนอน
             $this->Line(200, $y_start + 10, 10, $y_start + 10);
 
+            // ===== ผลการดูแลรักษาขั้นต้น =====
             $y_start += 5;
+
+            // อ่านค่าจาก DB (รองรับหลายค่าคั่นด้วย , ; |)
+            $treat_raw = trim((string)($data['treatment_result'] ?? ''));
+            $selectedTreat = array_filter(array_map('trim', preg_split('/[,\|;]+/', $treat_raw)));
+            $selLowerTreat = array_map(fn($v) => mb_strtolower($v, 'UTF-8'), $selectedTreat);
+            $pickedTreat = function (string $label) use ($selLowerTreat) {
+                return in_array(mb_strtolower($label, 'UTF-8'), $selLowerTreat, true);
+            };
+
             $this->SetXY(15, $y_start + 5);
             $this->SetFont('THSarabun', 'B', 11);
-            $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'ผลการดูแลรักษาขั้นตัน'), 0, 0);
+            $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'ผลการดูแลรักษาขั้นต้น'), 0, 0);
             $this->SetFont('THSarabun', '', 11);
+
+            // ไม่ยอมให้รักษา
             $this->CheckBox(43, $y_start + 6, 3);
+            if ($pickedTreat('ไม่ยอมให้รักษา')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(43, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(46, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ไม่ยอมให้รักษา'), 0, 0);
+
+            // ทุเลา
             $this->CheckBox(65, $y_start + 6, 3);
+            if ($pickedTreat('ทุเลา')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(65, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(68, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ทุเลา'), 0, 0);
+
+            // คงเดิม/คงที่
             $this->CheckBox(77, $y_start + 6, 3);
+            if ($pickedTreat('คงเดิม') || $pickedTreat('คงเดิม/คงที่')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(77, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(80, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'คงเดิม/คงที่'), 0, 0);
+            $this->Cell(15, 5, iconv('UTF-8', 'cp874', 'คงเดิม/คงที่'), 0, 0);
+
+            // ทรุดหนัก
             $this->CheckBox(96, $y_start + 6, 3);
+            if ($pickedTreat('ทรุดหนัก')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(96, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(99, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'ทรุดหนัก'), 0, 0);
+
+            // เสียชีวิต ณ จุดเกิดเหตุ
             $this->CheckBox(112, $y_start + 6, 3);
+            if ($pickedTreat('เสียชีวิต ณ จุดเกิดเหตุ')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(112, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(115, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'เสียชีวิต ณ จุดเกิดเหตุ'), 0, 0);
+            $this->Cell(26, 5, iconv('UTF-8', 'cp874', 'เสียชีวิต ณ จุดเกิดเหตุ'), 0, 0);
+
+            // เสียชีวิตขณะนำส่ง
             $this->CheckBox(141, $y_start + 6, 3);
+            if ($pickedTreat('เสียชีวิตขณะนำส่ง')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(141, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(144, $y_start + 5);
-            $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'เสียชีวิตขณะนำส่ง'), 0, 0);
+            $this->Cell(28, 5, iconv('UTF-8', 'cp874', 'เสียชีวิตขณะนำส่ง'), 0, 0);
 
             $this->SetY($this->GetY() + 6);
         }
@@ -683,34 +1338,110 @@ if (isset($_GET['cetak']) && isset($_GET['id'])) {
             $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'นำส่งห้องฉุกเฉินโรงพยาบาล'), 0, 0);
             $this->UnderLine(47, $y_start + 6, 75);
 
+            // ===== ประเภทโรงพยาบาล =====
+            // อ่านค่าจาก DB (รองรับหลายค่าคั่นด้วย , ; |)
+            $hosp_raw = trim((string)($data['hospital_type'] ?? ''));
+            $selectedHosp = array_filter(array_map('trim', preg_split('/[,\|;]+/', $hosp_raw)));
+            $selLowerHosp = array_map(fn($v) => mb_strtolower($v, 'UTF-8'), $selectedHosp);
+            $pickedHosp = function (string $label) use ($selLowerHosp) {
+                return in_array(mb_strtolower($label, 'UTF-8'), $selLowerHosp, true);
+            };
+
             $this->SetFont('THSarabun', '', 11);
+
+            // รพ.รัฐ
             $this->CheckBox(123, $y_start + 6, 3);
+            if ($pickedHosp('รพ.รัฐ')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(123, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(126, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'รพ.รัฐ'), 0, 0);
+
+            // รพ.เอกชน
             $this->CheckBox(137, $y_start + 6, 3);
+            if ($pickedHosp('รพ.เอกชน')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(137, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(140, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'รพ.เอกชน'), 0, 0);
+
+            // ===== เหตุผล =====
+
+            // อ่านค่าจาก DB (รองรับหลายค่าคั่นด้วย , ; |)
+            $reason_raw = trim((string)($data['reasons'] ?? ''));
+            $selectedReasons = array_filter(array_map('trim', preg_split('/[,\|;]+/', $reason_raw)));
+            $selLowerReasons = array_map(fn($v) => mb_strtolower($v, 'UTF-8'), $selectedReasons);
+            $pickedReason = function (string $label) use ($selLowerReasons) {
+                return in_array(mb_strtolower($label, 'UTF-8'), $selLowerReasons, true);
+            };
 
             $y_start += 5;
             $this->SetXY(15, $y_start + 5);
             $this->SetFont('THSarabun', 'B', 11);
             $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'เหตุผล'), 0, 0);
             $this->SetFont('THSarabun', '', 11);
+
+            // เหมาะสม/สามารถรักษาได้
             $this->CheckBox(26, $y_start + 6, 3);
+            if ($pickedReason('เหมาะสม/สามารถรักษาได้')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(26, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(29, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'เหมาะสม/สามารถรักษาได้'), 0, 0);
+
+            // อยู่ใกล้
             $this->CheckBox(60, $y_start + 6, 3);
+            if ($pickedReason('อยู่ใกล้')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(60, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(63, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'อยู่ใกล้'), 0, 0);
+
+            // มีหลักประกัน
             $this->CheckBox(74, $y_start + 6, 3);
+            if ($pickedReason('มีหลักประกัน')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(74, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(77, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'มีหลักประกัน'), 0, 0);
+
+            // เป็นผู้ป่วยเก่า
             $this->CheckBox(94, $y_start + 6, 3);
+            if ($pickedReason('เป็นผู้ป่วยเก่า')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(94, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(97, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'เป็นผู้ป่วยเก่า'), 0, 0);
+
+            // เป็นความประสงค์ (เลือกได้มากกว่า 1 ข้อ)
             $this->CheckBox(114, $y_start + 6, 3);
+            if ($pickedReason('เป็นความประสงค์') || $pickedReason('เป็นความประสงค์ (เลือกได้มากกว่า 1 ข้อ)')) {
+                $this->SetFont('THSarabun', 'B', 20);
+                $this->SetXY(114, $y_start + 5.8);
+                $this->Cell(3, 2, '/', 0, 0, 'C');
+            }
+            $this->SetFont('THSarabun', '', 11);
             $this->SetXY(117, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'เป็นความประสงค์ (เลือกได้มากกว่า 1 ข้อ)'), 0, 0);
+
 
             $y_start += 5;
             $this->SetXY(15, $y_start + 5);
@@ -718,7 +1449,7 @@ if (isset($_GET['cetak']) && isset($_GET['id'])) {
             $this->Cell(20, 5, iconv('UTF-8', 'cp874', 'ผู้สรุปรายงาน'), 0, 0);
             $this->UnderLine(31, $y_start + 6, 75);
 
-            $this->SetY($this->GetY() + 30);
+            $this->SetY($this->GetY() + 9);
         }
 
         // Section 5: การประเมิน
@@ -887,12 +1618,10 @@ if (isset($_GET['cetak']) && isset($_GET['id'])) {
             $this->CheckBox(159, $y_start + 6, 3);
             $this->SetXY(162, $y_start + 5);
             $this->Cell(10, 5, iconv('UTF-8', 'cp874', 'กลับไปตายบ้าน'), 0, 0);
-
-            $this->SetY($this->GetY() + 25);
         }
     }
     try {
-        $pdf = new MedicalForm();
+        $pdf = new MedicalForm('P', 'mm', array(210, 335)); // กระดาษยาวขนาด 700mm
         $pdf->AddPage();
         $data = $pdf->LoadData($pdo, $id);
 
@@ -1253,13 +1982,7 @@ if (isset($_GET['cetak']) && isset($_GET['id'])) {
                         </h5>
                         <form method="get" action="index.php">
                             <div class="row">
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label for="">ค้นหา</label>
-                                        <input type="text" class="form-control" name="search" placeholder="พิมพ์ชื่อผู้ป่วย/ชื่อผู้บันทึก" value="<?= htmlspecialchars($filters['search'] ?? '') ?>" />
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="name_en" class="form-label">ผลการปฏิบัติงาน</label>
                                         <select class="form-control" name="operation_result">
